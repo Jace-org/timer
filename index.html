@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEB 12 Board Exam Countdown</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #2c3e50, #4ca1af);
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 30px;
+            margin-bottom: 20px;
+        }
+
+        .timer-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .circle {
+            width: 120px;
+            height: 120px;
+            border: 8px solid white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .time-value {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .time-label {
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .quote-container {
+            font-size: 20px;
+            font-weight: bold;
+            height: 30px;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid white;
+            display: inline-block;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>NEB 12 Board Exam Countdown</h1>
+        <div class="timer-container">
+            <div class="circle">
+                <div class="time-value" id="days">0</div>
+                <div class="time-label">Days</div>
+            </div>
+            <div class="circle">
+                <div class="time-value" id="hours">0</div>
+                <div class="time-label">Hours</div>
+            </div>
+            <div class="circle">
+                <div class="time-value" id="minutes">0</div>
+                <div class="time-label">Minutes</div>
+            </div>
+            <div class="circle">
+                <div class="time-value" id="seconds">0</div>
+                <div class="time-label">Seconds</div>
+            </div>
+        </div>
+    </div>
+    <div class="quote-container" id="quote"></div>
+
+    <script>
+        function updateTimer() {
+            const examDate = new Date("April 24, 2025 08:00:00").getTime();
+            const now = new Date().getTime();
+            const timeLeft = examDate - now;
+
+            if (timeLeft <= 0) {
+                document.getElementById("days").innerHTML = "0";
+                document.getElementById("hours").innerHTML = "0";
+                document.getElementById("minutes").innerHTML = "0";
+                document.getElementById("seconds").innerHTML = "0";
+                return;
+            }
+
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerHTML = days;
+            document.getElementById("hours").innerHTML = hours;
+            document.getElementById("minutes").innerHTML = minutes;
+            document.getElementById("seconds").innerHTML = seconds;
+        }
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        const quotes = [
+            "Success is the sum of small efforts, repeated daily.",
+            "Don't stop until you're proud.",
+            "Push yourself, because no one else is going to do it for you.",
+            "Believe in yourself and all that you are.",
+            "Hard work beats talent when talent doesn’t work hard."
+        ];
+
+        let quoteIndex = 0;
+        let charIndex = 0;
+        function typeQuote() {
+            if (charIndex < quotes[quoteIndex].length) {
+                document.getElementById("quote").innerHTML = quotes[quoteIndex].substring(0, charIndex + 1);
+                charIndex++;
+                setTimeout(typeQuote, 100);
+            } else {
+                setTimeout(eraseQuote, 2000);
+            }
+        }
+
+        function eraseQuote() {
+            if (charIndex > 0) {
+                document.getElementById("quote").innerHTML = quotes[quoteIndex].substring(0, charIndex - 1);
+                charIndex--;
+                setTimeout(eraseQuote, 50);
+            } else {
+                quoteIndex = (quoteIndex + 1) % quotes.length;
+                setTimeout(typeQuote, 500);
+            }
+        }
+
+        typeQuote();
+    </script>
+</body>
+
+</html>
