@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Timer & NEB Countdown</title>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/jhapendrakandel/Jace.github.io/refs/heads/main/logo.png">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(to right, #2c3e50, #4ca1af);
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .container,
+        .timer-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .timer-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .circle {
+            width: 100px;
+            height: 100px;
+            border: 5px solid white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .time-value {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .time-label {
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        input,
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #ff6347;
+            color: white;
+            cursor: pointer;
+        }
+
+        .alert {
+            display: none;
+            font-size: 50px;
+            font-weight: bold;
+            color: red;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: shake 0.5s infinite alternate;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            25% {
+                transform: translate(-50%, -50%) rotate(-5deg);
+            }
+            50% {
+                transform: translate(-50%, -50%) rotate(5deg);
+            }
+            75% {
+                transform: translate(-50%, -50%) rotate(-5deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+        }
+
+        /* quotes */
+        .quote-container {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            max-width: 600px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .quote-text {
+            display: inline-block;
+            border-right: 2px solid white;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
+        }
+
+        @keyframes blink-caret {
+            from,
+            to {
+                border-color: transparent;
+            }
+            50% {
+                border-color: white;
+            }
+        }
+    </style>
+</head>
+<body onclick="resetTimer()">
+    <div class="quote-container"><span class="quote-text" id="quote">Loading...</span></div>
+    <div class="container">
+        <h1>NEB 12 Board Exam Countdown</h1>
+        <div class="timer-container">
+            <div class="circle">
+                <div class="time-value" id="days">0</div>
+                <div class="time-label">Days</div>
+            </div>
+            <div class="circle">
+                <div class="time-value" id="hours">0</div>
+                <div class="time-label">Hours</div>
+            </div>
+            <div class="circle">
+                <div class="time-value" id="minutes">0</div>
+                <div class="time-label">Minutes</div>
+            </div>
+            <div class="circle">
+                <div class="time-value" id="seconds">0</div>
+                <div class="time-label">Seconds</div>
+            </div>
+        </div>
+    </div>
+    <div style="background-color: #2c3e50; padding: 5px; margin-bottom: 10px; margin-top: 10px; border-radius: 15px; font-size: 60px; line-height: 0;">
+        <h2 id="studyTimer">00:00:00</h2>
+    </div>
+    <div class="timer-container">
+        <h2>Set Study Timer</h2>
+        <input type="number" id="inputHours" placeholder="Hours" min="0" max="24">
+        <input type="number" id="inputMinutes" placeholder="Minutes" min="0" max="59">
+        <input type="number" id="inputSeconds" placeholder="Seconds" min="0" max="59">
+        <button onclick="startTimer()">Start Timer</button>
+    </div>
+
+    <div style="background-color: #2c3e50; padding: 5px; margin-top: 10px; margin-bottom: 10px; border-radius: 15px; font-size: 30px; line-height: 0;">
+        <h2 id="examEndTimer">00:00:00</h2>
+        <p>Time Remaining Until Exam End</p>
+    </div>
+
+    <div class="alert" id="alert">TIME'S UP!</div>
+    <audio id="alarm" src="https://commondatastorage.googleapis.com/codeskulptor-assets/Epoq-Lepidoptera.ogg"></audio>
+    <script>
+        function updateExamCountdown() {
+                const examDate = new Date("April 24, 2025 08:00:00").getTime();
+                const examEndDate = new Date("May 6, 2025 11:00:00").getTime(); 
+                const now = new Date().getTime();
+
+                const timeLeft = examDate - now;
+                document.getElementById("days").textContent = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                document.getElementById("hours").textContent = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById("minutes").textContent = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById("seconds").textContent = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                // Time until end of exam day
+                const timeLeftExamEnd = examEndDate - now;
+                if (timeLeftExamEnd > 0) {
+                    const dEnd = Math.floor(timeLeftExamEnd / (1000 * 60 * 60 * 24));
+                    const hEnd = Math.floor((timeLeftExamEnd % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const mEnd = Math.floor((timeLeftExamEnd % (1000 * 60 * 60)) / (1000 * 60));
+                    const sEnd = Math.floor((timeLeftExamEnd % (1000 * 60)) / 1000);
+                    document.getElementById("examEndTimer").textContent = `${dEnd} Days : ${hEnd} Hrs : ${mEnd} Mins : ${sEnd} Secs`;
+                } else {
+                    document.getElementById("examEndTimer").textContent = "00:00:00";
+                }
+            
+        
+                }
+                setInterval(updateExamCountdown, 0);
+
+                let studyTimerInterval;
+                    let studyTimeLeft;
+
+                    function startTimer() {
+                        let h = parseInt(document.getElementById("inputHours").value) || 0;
+                        let m = parseInt(document.getElementById("inputMinutes").value) || 0;
+                        let s = parseInt(document.getElementById("inputSeconds").value) || 0;
+                        studyTimeLeft = (h * 3600) + (m * 60) + s;
+
+                        if (studyTimeLeft > 0) {
+                            const startTime = new Date().getTime();
+                            localStorage.setItem("studyStartTime", startTime);
+                            localStorage.setItem("studyDuration", studyTimeLeft);
+
+                            updateStudyTimer(); // Call immediately to avoid 1s delay
+                            clearInterval(studyTimerInterval);
+                            studyTimerInterval = setInterval(updateStudyTimer, 1000);
+                        }
+                    }
+
+                    function updateStudyTimer() {
+                        const startTime = localStorage.getItem("studyStartTime");
+                        const studyDuration = localStorage.getItem("studyDuration");
+
+                        if (startTime && studyDuration) {
+                            const now = new Date().getTime();
+                            const elapsedTime = Math.floor((now - startTime) / 1000);
+                            studyTimeLeft = studyDuration - elapsedTime;
+
+                            if (studyTimeLeft > 0) {
+                                let h = Math.floor(studyTimeLeft / 3600);
+                                let m = Math.floor((studyTimeLeft % 3600) / 60);
+                                let s = studyTimeLeft % 60;
+                                document.getElementById("studyTimer").textContent =
+                                    `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                            } else {
+                                clearInterval(studyTimerInterval);
+                                document.getElementById("studyTimer").textContent = "00:00:00";
+                                document.getElementById("alert").style.display = "block";
+                                document.getElementById("alarm").play();
+                                setTimeout(() => {
+                                    document.getElementById("alert").style.display = "none";
+                                }, 5000);
+                                localStorage.removeItem("studyStartTime");
+                                localStorage.removeItem("studyDuration");
+                            }
+                        }
+                    }
+
+                    // Restore timer if page reloads
+                    document.addEventListener("DOMContentLoaded", function () {
+                        if (localStorage.getItem("studyStartTime")) {
+                            updateStudyTimer();
+                            studyTimerInterval = setInterval(updateStudyTimer, 1000);
+                        }
+                    });
+                    
+                function resetTimer() {
+                    document.getElementById("alert").style.display = "none";
+                }
+
+                const quotes = [
+                    "Success is no accident.",
+                    "Believe in yourself and all that you are.",
+                    "Push yourself, because no one else is going to do it for you.",
+                    "Your limitation—it's only your imagination.",
+                    "Great things never come from comfort zones.",
+                    "Dream it. Wish it. Do it.",
+                    "Do something today that your future self will thank you for.",
+                    "It’s going to be hard, but hard does not mean impossible."
+                ];
+
+                function showQuote() {
+                    document.getElementById("quote").textContent = quotes[Math.floor(Math.random() * quotes.length)];
+                }
+                setInterval(showQuote, 5000);
+                showQuote();
+            </script>
+    </body>
+    
+    </html>
